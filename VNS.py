@@ -2,8 +2,7 @@
 # Program that uses VNS to solve the graph coloring problem
 
 import networkx as nx
-#import graphviz as gv
-import timeit
+import graphviz as gv
 from random import randint
 
 # Creates the graph to be colored and applies an initial color to its vertices
@@ -13,18 +12,9 @@ def initialization(f_name):
 	graph = nx.Graph()
 	edges_file = open(f_name, 'r')
 	
-	#
-	print "DEBUG: lendo o arquivo."
-	#
 	for line in edges_file:
 		line = line.replace("\n", "")
-		#
-		print "Linha: " + line
-		#
 		nodes = line.split("\t")
-		#
-		print "Nodos: " + nodes
-		#
 		for n in nodes:
 			node = int(n)
 			if(not graph.has_node(node)):
@@ -34,134 +24,91 @@ def initialization(f_name):
 		graph.add_edge(int(nodes[0]), int(nodes[1]))
 	
 	edges_file.close()
-	#
-	print "FIM: lendo o arquivo."
-	#
 	return graph
 
 
 # Perturbs the current solution by randomly choosing two vertices and swapping its colors
 # graph - the solution to be pertubed
 def perturbation(graph, k):
-	#
-	print "DEBUG: perturbando solução."
-	#
 	for i in range(1, k + 1):
 		node1 = randint(1, graph.number_of_nodes())
 		node2 = randint(1, graph.number_of_nodes())
-		#
-		print "Nodos: " + str(node1) + str(node2)
-		#
 		
 		aux = graph.node[node1]['color']
 		graph.node[node1]['color'] = graph.node[node2]['color']
 		graph.node[node2]['color'] = aux
-		#
-		print "Nodos: " + str(graph.node[node1]['color']) + str(graph.node[node2]['color'])
-	print "FIM: perturbando solução."
-	#
-	return graph
-'''
-# Tests if all nodes of a graph respects the color constraint
-# graph - the solution to be verified 
-def is_valid(graph, node):
-	#
-	print "DEBUG: verificando se a solução é válida."
-	#
-	node_color = graph.node[node]['color']
-	
-	#
-	print "Nodo: " + str(node)
-	#
-	
-	for item in graph[node]:
-		current_item = graph.node[item]
-		#
-		print "Vizinho: " + current_item
-		#
-		if (current_item['color'] == node_color):
-			#
-			print "FIM: -FALSE- verificando se a solução é válida."
-			#
-			return False
-	#
-	print "FIM: -TRUE- verificando se a solução é válida."
-	#		
-	return True
-	
-
-def has_conflict(G):
-	for i in G.nodes():
-		item = graph.node[i]
 		
-		for j in G[i]:
-			current_item = graph.node[j]
-			
-			if (current_item['color'] == current_item['color']):
-				return True
-			
-	return False
+	return graph
 
 
-def local_search(G, colors):
-	
-	index = random.randint(1, G.number_of_nodes())
-	selected_node = G.node[index]
-	possible_colors = colors[:]
-	x = selected_node['color']
-	y = possible_colors.index(x)
-	del possible_colors[y]
-	selected_node['color'] = random.randint(0, len(possible_colors))
-	if (is_valid(G, index)):
-		return G
-	else:
-		return None
-'''
-
-def possible_colors(graph, node, colors):
-	allowed = colors[:]
+# Select all the other colors that can be used in a certain node
+# graph - the graph being colored
+# node - the node which we will try to change its color
+# colors - vector with all color used in the graph
+def possible_colors(graph, node):
+	colors = []
+	for n in graph.nodes():
+		c = graph.node[n]['color']
+		if (not c in colors):
+			colors.append(c) 
 	
 	c = graph.node[node]['color']
 	pos = colors.index(c)
-	del allowed[pos]
+	del colors[pos]
 		
 	for n in graph.neighbors(node):
 		c = graph.node[n]['color']
-		if (c in allowed):
+		if (c in colors):
 			pos = colors.index(c)
-			del allowed[pos]
+			del colors[pos]
 	
-	return allowed
+	return colors
 	
 
-# Executes the VNS algoritm
+# Verify if the graph complain with the color constraint
+# graph - the graph to be validated
+def is_valid(graph):
+	for i in graph.nodes():
+		item = graph.node[i]
+		
+		for j in graph[i]:
+			current_item = graph.node[j]
+			if (item['color'] == current_item['color']):
+				return False
+	
+	return True
+
+
+# The VNS algoritm
+# G - the graph to be colored
+# K - number of attempts before a perturbation
+# T - number of local searches to be executed
 def vns(G, K, T):
 	# Parameter initialization
 	nb_nodes = G.number_of_nodes()
-	colors = list(range(1, nb_of_nodes + 1))
 	best = G.copy()
 	change = False
 	attempts = 0
 			
 	for i in range(0, T):
-		
 		# Local search
-		selected_node = random.randint(1, G.number_of_nodes())
-		possibilities = possible_colors(G, selected_node, colors)
+		selected_node = randint(1, G.number_of_nodes())
+		possibilities = possible_colors(G, selected_node)
 		if (len(possibilities) > 0):
-			graph.node[node]['color'] = possibilities[0]
+			G.node[selected_node]['color'] = possibilities[0]
 			change = True
 				
 		if (change):
 			attempts = 0
-			if (has_conf(G)):
-				best = G
+			change = False
+			if (is_valid(G)):
+				best = G.copy()
 		else:
 			attempts += 1
 		
 		# Apply a perturbation
 		if (attempts == K):
-			G = perturbation(G)
+			G = perturbation(G, K)
 	
 	return best
 
@@ -179,6 +126,7 @@ def plot_solution(graph, name):
 	
 	G.render(filename = image_name)
 
+
 # Main program
 def main():
 	print "Initiating Graph Coloring Tool..."
@@ -193,8 +141,8 @@ def main():
 	solution = vns(G, K, T)
 	print "Done!"
 	
-	plot_solution(solution)
-	print "Check the current folder to see the image that illustrates the result. =D"
+	plot_solution(solution, file_name)
+	print "Check the current folder to see the image that illustrates the result. ;)"
 	
 # Starts the main program
 main()
