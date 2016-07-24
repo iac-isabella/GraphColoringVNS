@@ -28,7 +28,7 @@ def initialization(f_name):
 
 
 # Perturbs the current solution by randomly choosing two vertices and swapping its colors
-# graph - the solution to be pertubed
+# graph - the solution to be perturbed
 def perturbation(graph, k):
 	for i in range(1, k + 1):
 		node1 = randint(1, graph.number_of_nodes())
@@ -65,7 +65,7 @@ def possible_colors(graph, node):
 	return colors
 	
 
-# Verify if the graph complain with the color constraint
+# Checks if the graph do not violates the color constraint
 # graph - the graph to be validated
 def is_valid(graph):
 	for i in graph.nodes():
@@ -79,7 +79,7 @@ def is_valid(graph):
 	return True
 
 
-# The VNS algoritm
+# The VNS algorithm
 # G - the graph to be colored
 # K - number of attempts before a perturbation
 # T - number of local searches to be executed
@@ -112,7 +112,7 @@ def vns(G, K, T):
 	
 	return best
 
-# Plots a solution using Graphviz lib
+# Plotting a solution using Graphviz
 # graph - the solution to be transformed in an image
 def plot_solution(graph, name):
 	image_name = "solution_" + name
@@ -142,7 +142,7 @@ def main():
 	print "Done!"
 	
 	plot_solution(solution, file_name)
-	print "Check the current folder to see the image that illustrates the result. ;)"
+	print "Check the current folder to see the image that illustrates the result."
 	
 # Starts the main program
 main()
